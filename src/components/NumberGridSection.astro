@@ -1,0 +1,304 @@
+---
+// src/components/NumberGridSection.astro
+---
+
+<section class="grid-container" id="numeros">
+  <h2>Elige tu Número (000 al 500)</h2>
+
+  <!-- Leyenda de Estados -->
+  <div class="legend">
+    <span><span class="dot available"></span>Disponible</span>
+    <span><span class="dot sold"></span>Vendido</span>
+    <span><span class="dot selected"></span>Tu Selección</span>
+  </div>
+
+  <!-- Buscador y Botón Aleatorio -->
+  <div class="controls">
+    <input 
+      type="number" 
+      id="searchInput" 
+      class="search-input" 
+      placeholder="🔍 Buscar número (ej: 042)..." 
+      min="0" 
+      max="500" 
+    />
+    <button class="btn-random" id="randomBtn">🎲 Al Azar</button>
+  </div>
+
+  <!-- Pestañas de Rangos -->
+  <div class="tabs" id="tabsContainer">
+    <button class="tab-btn active" data-range="0">000 - 099</button>
+    <button class="tab-btn" data-range="1">100 - 199</button>
+    <button class="tab-btn" data-range="2">200 - 299</button>
+    <button class="tab-btn" data-range="3">300 - 399</button>
+    <button class="tab-btn" data-range="4">400 - 500</button>
+  </div>
+
+  <!-- Grilla de Números -->
+  <div class="grid-numbers" id="numbersGrid">
+    <!-- Generado dinámicamente -->
+  </div>
+</section>
+
+<script>
+    const SUPABASE_URL = 'https://bztzxsfsjrzndsanhmwy.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_4HlkD3c2z3tv_YoiTH8d3Q_B88VoH-t';
+    
+    // Lista dinámicamente poblada por Supabase
+    let numerosVendidos: number[] = [];
+    
+    let selectedNumber: number | null = null;
+    let currentRange = 0;
+
+    const grid = document.getElementById('numbersGrid') as HTMLElement;
+    const tabs = document.querySelectorAll('.tab-btn');
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const randomBtn = document.getElementById('randomBtn') as HTMLButtonElement;
+
+    function renderGrid(range: number) {
+        if (!grid) return;
+        grid.innerHTML = '';
+        const start = range * 100;
+        const end = (range === 4) ? 500 : start + 99;
+
+        for (let i = start; i <= end; i++) {
+            const numFormatted = String(i).padStart(3, '0');
+            const isSold = numerosVendidos.includes(i);
+            const isSelected = selectedNumber === i;
+
+            const btn = document.createElement('button');
+            btn.className = `num-btn ${isSold ? 'sold' : ''} ${isSelected ? 'selected' : ''}`;
+            btn.textContent = numFormatted;
+            btn.disabled = isSold;
+
+            if (!isSold) {
+                btn.onclick = () => selectNumber(i);
+            }
+
+            grid.appendChild(btn);
+        }
+    }
+
+    function selectNumber(num: number) {
+        selectedNumber = num;
+
+        // Emite el evento personalizado con el número elegido para el Drawer / Carrito
+        window.dispatchEvent(new CustomEvent('numberSelected', { detail: { number: num } }));
+
+        const newRange = Math.floor(num / 100);
+        
+        if (newRange !== currentRange && newRange <= 4) {
+            currentRange = newRange;
+            updateActiveTab();
+        }
+
+        renderGrid(currentRange);
+    }
+
+    function updateActiveTab() {
+        tabs.forEach((tab, index) => {
+            tab.classList.toggle('active', index === currentRange);
+        });
+    }
+
+    // AGREGADO: Carga el estado real desde Supabase y actualiza `numerosVendidos`
+    async function cargarEstadoNumeros() {
+        try {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/vista_boletos_publica?select=numero,estado`, {
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`
+                }
+            });
+
+            if (!response.ok) throw new Error('Error en la petición a Supabase');
+
+            const boletos = await response.json();
+
+            // Llenamos el array de numerosVendidos con los que están en la base de datos
+            boletos.forEach((boleto: { numero: string | number; estado: string }) => {
+                if (boleto.estado === 'pagado' || boleto.estado === 'apartado') {
+                    const numInt = typeof boleto.numero === 'string' ? parseInt(boleto.numero, 10) : boleto.numero;
+                    if (!isNaN(numInt) && !numerosVendidos.includes(numInt)) {
+                        numerosVendidos.push(numInt);
+                    }
+                }
+            });
+
+            // Re-renderizamos para deshabilitar los que Supabase reportó como ocupados
+            renderGrid(currentRange);
+        } catch (error) {
+            console.error('Error al conectar con Supabase:', error);
+        }
+    }
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            if (target && target.dataset.range) {
+                currentRange = parseInt(target.dataset.range);
+                updateActiveTab();
+                renderGrid(currentRange);
+            }
+        });
+    });
+
+    searchInput?.addEventListener('input', (e) => {
+        const target = e.target as HTMLInputElement;
+        const val = parseInt(target.value, 10);
+        if (!isNaN(val) && val >= 0 && val <= 500) {
+            if (!numerosVendidos.includes(val)) {
+                selectNumber(val);
+            }
+        }
+    });
+
+    randomBtn?.addEventListener('click', () => {
+        // Evitamos bucle infinito si todos estuvieran vendidos
+        if (numerosVendidos.length >= 501) return;
+
+        let randomNum: number;
+        do {
+            randomNum = Math.floor(Math.random() * 501);
+        } while (numerosVendidos.includes(randomNum));
+        
+        selectNumber(randomNum);
+    });
+
+    // 1. Carga inmediata rápida local
+    renderGrid(0);
+
+    // 2. Carga asíncrona de Supabase en segundo plano
+    cargarEstadoNumeros();
+</script>
+
+<style>
+  .grid-container {
+    width: 100%;
+    max-width: 500px;
+    margin: 24px auto 0 auto;
+    padding: 0 16px;
+    box-sizing: border-box;
+    font-family: system-ui, sans-serif;
+  }
+
+  .grid-container h2 {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+  }
+
+  /* Leyenda de estados */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 14px;
+    font-size: 0.85rem;
+    color: #4b5563;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+  }
+  .dot.available { background-color: #ffffff; border: 1px solid #d1d5db; }
+  .dot.sold { background-color: #ef4444; }
+  .dot.selected { background-color: #2563eb; }
+
+  /* Buscador y Botón */
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .search-input {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 0.9rem;
+    outline: none;
+  }
+
+  .btn-random {
+    background-color: #f59e0b;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+
+  /* Pestañas de rangos */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+  }
+
+  .tab-btn {
+    background-color: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  .tab-btn.active {
+    background-color: #2563eb;
+    color: white;
+    border-color: #2563eb;
+  }
+
+  /* Grilla estilo tabla del flyer */
+  .grid-numbers {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    border-top: 1px solid #d1d5db;
+    border-left: 1px solid #d1d5db;
+    background-color: #ffffff;
+  }
+
+  :global(.num-btn) {
+    background: #ffffff;
+    border: none;
+    border-right: 1px solid #d1d5db;
+    border-bottom: 1px solid #d1d5db;
+    color: #111827;
+    padding: 10px 0;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+
+  :global(.num-btn:hover) {
+    background-color: #f9fafb;
+  }
+
+  :global(.num-btn.sold) {
+    background-color: #fee2e2 !important;
+    color: #ef4444 !important;
+    cursor: not-allowed !important;
+    text-decoration: line-through;
+  }
+
+  :global(.num-btn.selected) {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    font-weight: bold !important;
+  }
+</style>

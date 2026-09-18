@@ -1,0 +1,58 @@
+---
+---
+
+<section class="hero-container" id="hero">
+  <!-- 1. Título principal -->
+  <h1>Gran Rifa de Moto</h1>
+
+  <!-- 2. Sección del Premio -->
+  <section class="prize-wrapper">
+    <h2>Premio</h2>
+    <img src="/whynot/moto.jpeg" alt="Vehículo a rifar" />
+    <!-- Contenedor alineado al ancho exacto de la imagen -->
+    <div class="note-box">
+      <p class="refurbished-note">
+        <strong>Estado del vehículo:</strong> Se entrega reacondicionado, con mantenimiento preventivo completo y al día para su uso.
+      </p>
+    </div>  
+  </section>
+
+  <!-- 3. Valor del boleto -->
+  <p class="ticket-price">Valor de la rifa: ₡2.500</p>
+
+</section>
+
+<style>
+  .hero-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .prize-wrapper img {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  /* Caja alineada estrictamente al ancho de la imagen */
+  .note-box {
+    width: 100%;
+    max-width: 400px; /* Mismo límite que la imagen */
+    box-sizing: border-box;
+    margin-top: 8px;
+  }
+
+  .refurbished-note {
+    font-size: 0.9rem;
+    color: #4a5568;
+    margin-top: 8px;
+  }
+
+  .ticket-price {
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+</style>

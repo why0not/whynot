@@ -1,0 +1,98 @@
+<section class="rules-container" id="reglas">
+  <h2>¿Cómo se define el ganador?</h2>
+
+  <div class="rule-block">
+    <h3>Formato del Número Ganador</h3>
+    <p>Se combina el último dígito de la serie + el número del premio oficial de la Lotería Nacional (JPS).</p>
+    
+    <!-- Ejemplo visualmente explicado -->
+    <div class="example-box">
+      <span>(Ej: Serie 45<strong class="highlight-digit">3</strong> y Número <strong class="highlight-number">21</strong> = Boleto <strong class="highlight-result"><span class="highlight-digit">3</span><span class="highlight-number">21</span></strong>)</span>
+    </div>
+  </div>
+
+  <div class="rule-block">
+    <h3>Orden de Validación</h3>
+    <ul>
+      <li>Se verifica primero con el 1.er Premio.</li>
+      <li>Si supera el 500, se verifica con el 2.° Premio.</li>
+      <li>Si también supera el 500, se verifica con el 3.er Premio.</li>
+    </ul>
+  </div>
+
+  <div class="rule-block">
+    <h3>Regla Extraordinaria</h3>
+    <p>Únicamente si los 3 premios superan el 500 en el mismo sorteo, se le restarán 500 al 1.er Premio para obtener el ganador inmediato.</p>
+  </div>
+
+  <div class="rule-block">
+    <h3>📌 Condición de realización</h3>
+    <p>El sorteo se jugará el primer domingo disponible una vez vendidos los 500 números.</p>
+  </div>
+</section>
+
+<style>
+  /* Contenedor principal alineado y centrado */
+  .rules-container {
+    width: 100%;
+    max-width: 500px; /* Ancho fijo para que toda la caja se centre uniforme */
+    margin: 24px auto 0 auto;
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
+
+  .rules-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  /* Todo el contenido interno comparte el mismo margen izquierdo estricto */
+  .rules-content {
+    width: 100%;
+    text-align: left;
+  }
+
+  .rule-block {
+    margin-bottom: 16px;
+  }
+
+  .rule-block h3 {
+    margin-bottom: 4px;
+    font-size: 1rem;
+  }
+
+  .rule-block ul {
+    padding-left: 20px;
+    margin: 4px 0;
+  }
+
+  /* Estilos para resaltar la explicación del ejemplo */
+  .example-box {
+    background-color: #f3f4f6;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 6px;
+    display: inline-block;
+  }
+
+  .highlight-digit {
+    color: #d97706; /* Color naranja para el último dígito de la serie */
+    background-color: #fef3c7;
+    padding: 1px 4px;
+    border-radius: 4px;
+  }
+
+  .highlight-number {
+    color: #2563eb; /* Color azul para el número de la lotería */
+    background-color: #dbeafe;
+    padding: 1px 4px;
+    border-radius: 4px;
+  }
+
+  .highlight-result {
+    font-weight: bold;
+    border: 1px dashed #9ca3af;
+    padding: 1px 4px;
+    border-radius: 4px;
+  }
+</style>

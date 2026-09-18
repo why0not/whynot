@@ -1,0 +1,270 @@
+---
+// src/components/CheckoutBar.astro
+const SINPE_NUMERO = "86471734";
+const WHATSAPP_NUMERO = "50686471734";
+const PRECIO_BOLETO = "2.500";
+---
+
+<!-- Fondo oscuro semitransparente (Overlay) -->
+<div class="drawer-overlay hidden" id="drawerOverlay"></div>
+
+<!-- Panel Lateral Deslizable -->
+<aside class="cart-drawer hidden" id="cartDrawer">
+  <div class="drawer-header">
+    <h2>Carrito de Compra</h2>
+    <button class="btn-close" id="closeDrawerBtn" aria-label="Cerrar">✕</button>
+  </div>
+
+  <div class="drawer-body">
+    <!-- Detalle del producto / Boleto -->
+    <div class="cart-item">
+      <div class="item-info">
+        <span class="item-title">Boleto para la Rifa</span>
+        <strong class="item-number" id="selectedNumText">#---</strong>
+      </div>
+      <span class="item-price">₡{PRECIO_BOLETO}</span>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- Información de Pago por Sinpe -->
+    <div class="sinpe-card">
+      <span class="sinpe-label">Pagar por Sinpe Móvil</span>
+      <p class="sinpe-number">{SINPE_NUMERO}</p>
+      <span class="sinpe-instruction">Realiza la transferencia por ₡{PRECIO_BOLETO} a este número.</span>
+    </div>
+
+    <!-- Nota para pedir más números -->
+    <div class="extra-note-card">
+      <p>💡 <strong>¿Deseas adquirir más números?</strong></p>
+      <p>Indícalos en el mensaje de WhatsApp al enviar tu comprobante y te los apartamos de una vez.</p>
+    </div>
+  </div>
+
+  <div class="drawer-footer">
+    <a id="whatsappBtn" href="#" target="_blank" class="btn-whatsapp">
+      📲 Confirmar y Reservar por WhatsApp
+    </a>
+  </div>
+</aside>
+
+<script define:vars={{ WHATSAPP_NUMERO, PRECIO_BOLETO }}>
+  const overlay = document.getElementById('drawerOverlay');
+  const drawer = document.getElementById('cartDrawer');
+  const selectedNumText = document.getElementById('selectedNumText');
+  const whatsappBtn = document.getElementById('whatsappBtn');
+  const closeBtn = document.getElementById('closeDrawerBtn');
+
+  function closeDrawer() {
+    drawer?.classList.add('hidden');
+    overlay?.classList.add('hidden');
+  }
+
+  // Escuchar la selección de número desde la grilla
+  window.addEventListener('numberSelected', (e) => {
+    const num = e.detail.number;
+    const numFormatted = String(num).padStart(3, '0');
+
+    if (selectedNumText) {
+      selectedNumText.textContent = `#${numFormatted}`;
+    }
+
+    if (whatsappBtn) {
+      // Construimos el mensaje codificado limpiamente
+      const textoMensaje = `Hola, quiero reservar el boleto #${numFormatted} para la rifa. Ya tengo los datos para el Sinpe Móvil.`;
+      const mensajeCodificado = encodeURIComponent(textoMensaje);
+
+      // Asignamos la URL completa
+      whatsappBtn.href = `https://wa.me/50686471734?text=${mensajeCodificado}`;
+    }
+
+    // Mostrar el panel lateral y el fondo
+    drawer?.classList.remove('hidden');
+    overlay?.classList.remove('hidden');
+  });
+
+  closeBtn?.addEventListener('click', closeDrawer);
+  overlay?.addEventListener('click', closeDrawer);
+</script>
+
+<style>
+  /* Fondo Oscuro / Backdrop */
+  .drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 200;
+    transition: opacity 0.3s ease;
+  }
+
+  .drawer-overlay.hidden {
+    display: none;
+  }
+
+  /* Panel Lateral (Drawer) */
+  .cart-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 380px; /* Ancho ideal en PC, ocupa pantalla completa en teléfonos pequeños */
+    background-color: #ffffff;
+    z-index: 201;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -4px 0 25px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .cart-drawer.hidden {
+    display: none;
+  }
+
+  /* Cabecera del Carrito */
+  .drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .drawer-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #111827;
+  }
+
+  .btn-close {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .btn-close:hover {
+    background-color: #f3f4f6;
+  }
+
+  /* Cuerpo con Scroll si el contenido sobrepasa */
+  .drawer-body {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f9fafb;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #f3f4f6;
+  }
+
+  .item-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .item-title {
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+
+  .item-number {
+    font-size: 1.2rem;
+    color: #2563eb;
+  }
+
+  .item-price {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #111827;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px dashed #e5e7eb;
+    margin: 4px 0;
+  }
+
+  /* Tarjeta Sinpe */
+  .sinpe-card {
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    padding: 14px;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .sinpe-label {
+    font-size: 0.8rem;
+    color: #1e40af;
+    display: block;
+  }
+
+  .sinpe-number {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1d4ed8;
+    margin: 4px 0;
+  }
+
+  .sinpe-instruction {
+    font-size: 0.8rem;
+    color: #3b82f6;
+  }
+
+  /* Nota sobre números adicionales */
+  .extra-note-card {
+    background-color: #fefce8;
+    border: 1px solid #fef08a;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #713f12;
+    line-height: 1.4;
+  }
+
+  .extra-note-card p {
+    margin: 0;
+  }
+
+  .extra-note-card p + p {
+    margin-top: 4px;
+  }
+
+  /* Footer con botón fijo en el fondo del panel */
+  .drawer-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #e5e7eb;
+    background-color: #ffffff;
+  }
+
+  .btn-whatsapp {
+    display: block;
+    background-color: #16a34a;
+    color: #ffffff;
+    text-decoration: none;
+    text-align: center;
+    padding: 14px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.95rem;
+    transition: background-color 0.2s ease;
+  }
+
+  .btn-whatsapp:hover {
+    background-color: #15803d;
+  }
+</style>
